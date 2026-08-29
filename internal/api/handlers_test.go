@@ -56,6 +56,22 @@ func getTestToken(t *testing.T, ts *httptest.Server) string {
 	return ""
 }
 
+// extractField extracts a key=value field from a plain-text response body.
+// It handles the case where the value is at the end of the string (no trailing space).
+func extractField(body, key string) string {
+	idx := strings.Index(body, key+"=")
+	if idx < 0 {
+		return ""
+	}
+	start := idx + len(key) + 1
+	rest := body[start:]
+	end := strings.Index(rest, " ")
+	if end < 0 {
+		return rest // value is at end of string
+	}
+	return rest[:end]
+}
+
 // getTestTokenDirect creates a token directly via the store for testing.
 func getTestTokenDirect(t *testing.T, s *store.Store) string {
 	t.Helper()
@@ -297,10 +313,7 @@ func TestDeleteKey(t *testing.T) {
 	resp.Body.Close()
 
 	bodyStr := string(body[:n])
-	idx := strings.Index(bodyStr, "handle=")
-	handleStart := idx + 7
-	handleEnd := strings.Index(bodyStr[handleStart:], " ")
-	handle := bodyStr[handleStart : handleStart+handleEnd]
+	handle := extractField(bodyStr, "handle")
 
 	// Delete key
 	req, _ = http.NewRequest("DELETE", ts.URL+"/keys/"+handle, nil)
@@ -346,10 +359,7 @@ func TestRotateKey(t *testing.T) {
 	resp.Body.Close()
 
 	bodyStr := string(body[:n])
-	idx := strings.Index(bodyStr, "handle=")
-	handleStart := idx + 7
-	handleEnd := strings.Index(bodyStr[handleStart:], " ")
-	handle := bodyStr[handleStart : handleStart+handleEnd]
+	handle := extractField(bodyStr, "handle")
 
 	// Rotate key
 	req, _ = http.NewRequest("POST", ts.URL+"/keys/"+handle+"/rotate", nil)
@@ -390,16 +400,8 @@ func TestVerifyKey(t *testing.T) {
 	bodyStr := string(body[:n])
 
 	// Extract handle
-	idx := strings.Index(bodyStr, "handle=")
-	handleStart := idx + 7
-	handleEnd := strings.Index(bodyStr[handleStart:], " ")
-	handle := bodyStr[handleStart : handleStart+handleEnd]
-
-	// Extract secret
-	secIdx := strings.Index(bodyStr, "secret=")
-	secStart := secIdx + 7
-	secEnd := strings.Index(bodyStr[secStart:], " ")
-	secret := bodyStr[secStart : secStart+secEnd]
+	handle := extractField(bodyStr, "handle")
+	secret := extractField(bodyStr, "secret")
 
 	// Verify with correct secret
 	req, _ = http.NewRequest("POST", ts.URL+"/keys/"+handle+"/verify", strings.NewReader("secret="+secret))
