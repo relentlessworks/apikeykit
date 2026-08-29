@@ -7,9 +7,7 @@ on:
       - 'docs/**'
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -18,14 +16,30 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          fetch-depth: 0
+
+      - name: Save docs to temp
+        run: |
+          cp -r docs /tmp/docs-backup
+
+      - name: Checkout gh-pages
+        run: |
+          git checkout --orphan gh-pages || git checkout gh-pages
+          git reset --hard
+          git clean -fdx
+
+      - name: Copy docs
+        run: |
+          cp -r /tmp/docs-backup/* .
+          rm -rf .github Makefile cmd internal go.mod go.sum VERSION LICENSE .gitignore
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Deploy pages from ${{ github.sha }}" || echo "No changes to commit"
+          git push origin gh-pages --force
