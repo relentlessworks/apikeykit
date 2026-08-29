@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>apikeykit — Agentic-First API Key Management</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#0d1117;color:#e6edf3;line-height:1.6}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+.hero{text-align:center;padding:4rem 0 3rem}
+.hero h1{font-size:3rem;font-weight:700;letter-spacing:-0.03em;margin-bottom:0.5rem}
+.hero h1 span{color:#58a6ff}
+.hero p{font-size:1.25rem;color:#8b949e;max-width:600px;margin:0 auto 2rem}
+.badges{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap}
+.badge{display:inline-block;padding:0.25rem 0.75rem;border:1px solid #30363d;border-radius:20px;font-size:0.8rem;color:#8b949e}
+.badge.go{border-color:#00add8;color:#00add8}
+.badge.license{border-color:#2ea043;color:#2ea043}
+.cta{display:flex;gap:1rem;justify-content:center;margin-top:2rem}
+.cta a{display:inline-block;padding:0.75rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.95rem}
+.cta .primary{background:#238636;color:#fff;border:1px solid #238636}
+.cta .secondary{background:transparent;color:#e6edf3;border:1px solid #30363d}
+section{padding:2.5rem 0}
+section h2{font-size:1.5rem;font-weight:600;margin-bottom:1rem;border-bottom:1px solid #21262d;padding-bottom:0.5rem}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.principle{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1.25rem}
+.principle h3{font-size:0.95rem;color:#58a6ff;margin-bottom:0.5rem}
+.principle p{font-size:0.85rem;color:#8b949e}
+pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:1rem;overflow-x:auto;font-size:0.85rem;line-height:1.5}
+code{font-family:'SF Mono',Monaco,Consolas,monospace}
+.config-table{width:100%;border-collapse:collapse}
+.config-table th,.config-table td{padding:0.5rem 0.75rem;border-bottom:1px solid #21262d;text-align:left;font-size:0.85rem}
+.config-table th{color:#58a6ff;font-weight:600}
+.config-table code{color:#f0883e}
+footer{text-align:center;padding:2rem 0;color:#6e7681;font-size:0.8rem;border-top:1px solid #21262d;margin-top:2rem}
+@media(max-width:600px){.hero h1{font-size:2rem}.hero p{font-size:1rem}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="hero">
+<h1>api<span>key</span>kit</h1>
+<p>Agentic-first API key management service. Generate, manage, rotate, and verify API keys with scopes, TTL, and audit logging.</p>
+<div class="badges">
+<span class="badge go">Go</span>
+<span class="badge">Single Binary</span>
+<span class="badge">JSON Storage</span>
+<span class="badge">MCP</span>
+<span class="badge license">MIT</span>
+</div>
+<div class="cta">
+<a class="primary" href="https://github.com/relentlessworks/apikeykit">View on GitHub</a>
+<a class="secondary" href="#quickstart">Quick Start</a>
+</div>
+</div>
+
+<section id="quickstart">
+<h2>Quick Start</h2>
+<pre><code># Build
+make build
+
+# Run (defaults to :7700)
+./apikeykit
+
+# Request OTP
+curl -X POST http://localhost:7700/auth/request -d 'email=agent@example.com'
+
+# Verify OTP
+curl -X POST http://localhost:7700/auth/verify -d 'email=agent@example.com&code=123456'
+
+# Create a key
+curl -H "Authorization: Bearer &lt;token&gt;" \
+  -X POST http://localhost:7700/keys \
+  -d 'name=my-key&scopes=read,write'
+# handle=key_abc12 secret=ak_live_xxx... warning=save the secret now
+
+# List keys
+curl -H "Authorization: Bearer &lt;token&gt;" http://localhost:7700/keys</code></pre>
+</section>
+
+<section>
+<h2>Principles</h2>
+<div class="principles">
+<div class="principle"><h3>Agent IS the Interface</h3><p>No UI, no SDK. The AI agent is the user. The API is the product.</p></div>
+<div class="principle"><h3>Plain Text by Default</h3><p>One labeled, grepable line per record. Token-cheap. JSON on demand.</p></div>
+<div class="principle"><h3>Instructive Errors</h3><p>Every 4xx includes a hint telling the agent what to do next.</p></div>
+<div class="principle"><h3>Self-Documenting</h3><p>GET /help returns a one-page operating manual the agent loads at runtime.</p></div>
+<div class="principle"><h3>Simple Auth</h3><p>OTP via email → long-lived bearer token. No complex OAuth.</p></div>
+<div class="principle"><h3>Single Binary</h3><p>Go + JSON file storage. Zero external dependencies. Deploys as one file.</p></div>
+<div class="principle"><h3>Zero Config</h3><p>Runs out of the box. Config layered: defaults < file < env < flags.</p></div>
+<div class="principle"><h3>Multi-Tenant</h3><p>Workspaces isolate keys. Plans, limits, and audit logs built in.</p></div>
+<div class="principle"><h3>MCP Connector</h3><p>Speaks Model Context Protocol at /mcp for chat client integrations.</p></div>
+<div class="principle"><h3>Short Handles</h3><p>Every key gets a short stable handle like key_abc12. Token-cheap.</p></div>
+</div>
+</section>
+
+<section>
+<h2>API Reference</h2>
+<pre><code># Keys
+POST   /keys                    Create key (name, scopes, ttl)
+GET    /keys                    List keys
+GET    /keys/&lt;handle&gt;           Get key details
+DELETE /keys/&lt;handle&gt;           Revoke key
+POST   /keys/&lt;handle&gt;/rotate    Rotate secret
+POST   /keys/&lt;handle&gt;/verify    Verify secret (secret=...)
+
+# Auth
+POST   /auth/request            Request OTP (email=...)
+POST   /auth/verify             Verify OTP (email=... code=...)
+
+# Other
+GET    /workspaces              List workspaces
+GET    /audit?limit=20          Audit log
+GET    /help                    Self-documenting
+POST   /mcp                     MCP JSON-RPC endpoint</code></pre>
+</section>
+
+<section>
+<h2>Configuration</h2>
+<table class="config-table">
+<tr><th>Flag</th><th>Env Var</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>-addr</code></td><td><code>APIKEYKIT_ADDR</code></td><td>:7700</td><td>Listen address</td></tr>
+<tr><td><code>-db</code></td><td><code>APIKEYKIT_DB</code></td><td>./apikeykit.json</td><td>Database file path</td></tr>
+<tr><td><code>-secret</code></td><td><code>APIKEYKIT_SECRET</code></td><td>auto-generated</td><td>Token signing secret</td></tr>
+<tr><td><code>-smtp</code></td><td><code>APIKEYKIT_SMTP</code></td><td>stderr</td><td>SMTP server for OTP</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Build</h2>
+<pre><code>make build    # CGO_ENABLED=0, single binary
+make test     # go test -race
+make vet      # go vet</code></pre>
+</section>
+
+<footer>
+<p>MIT License · <a href="https://github.com/relentlessworks/apikeykit" style="color:#58a6ff;text-decoration:none">github.com/relentlessworks/apikeykit</a></p>
+<p>Part of the <a href="https://github.com/relentlessworks" style="color:#58a6ff;text-decoration:none">relentlessworks</a> agentic-first toolkit</p>
+</footer>
+</div>
+</body>
+</html>
